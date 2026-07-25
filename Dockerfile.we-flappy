@@ -1,0 +1,2 @@
+FROM nginx
+COPY we_flappy /usr/share/nginx/html

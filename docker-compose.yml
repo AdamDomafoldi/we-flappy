@@ -4,7 +4,7 @@ services:
     we-fappy:
         build:
             context: .
-            dockerfile: Dockerfile.we-fappy
+            dockerfile: Dockerfile.we-flappy
         restart: always
         container_name: we-fappy
         ports:
