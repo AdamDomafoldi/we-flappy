@@ -4,6 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <title>We Flappy</title>
+
+<link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96" />
+<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+<link rel="shortcut icon" href="/favicon.ico" />
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+<link rel="manifest" href="/site.webmanifest" />
 <style>
   :root {
     --sky1:#c9efff;
@@ -124,6 +130,19 @@
     color:var(--purple);
     border:2px solid rgba(116,70,168,.24)!important;
   }
+
+  .wedding-link {
+    display:flex!important;
+    align-items:center;
+    justify-content:center;
+    gap:10px;
+  }
+  .wedding-link .btn-icon {
+    width:60px;
+    height:60px;
+    object-fit:contain;
+    flex:0 0 auto;
+  }
   #hud {
     position:absolute;
     z-index:10;
@@ -171,6 +190,11 @@
 </style>
 </head>
 <body>
+  <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="shortcut icon" href="/favicon.ico" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+  <link rel="manifest" href="/site.webmanifest" />
   <main id="game" aria-label="We Flappy játék">
     <canvas id="canvas"></canvas>
 
@@ -188,7 +212,7 @@
         <p class="subtitle">Repüljetek át minél több kapun!<br>Kattints, érintsd meg a képernyőt, vagy nyomd meg a szóközt.</p>
         <div class="buttons">
           <button id="startBtn" class="primary">Játék indítása</button>
-          <a class="button secondary" href="https://adam-marica.wedding" target="_blank" rel="noopener">💍 Esküvő</a>
+          <a class="button secondary wedding-link" href="wedding.html"><img class="btn-icon" src="apple-touch-icon.png" alt=""> <span>Esküvő</span></a>
         </div>
       </div>
     </section>
@@ -199,7 +223,7 @@
         <p class="subtitle">Eredményed: <strong id="finalScore">0</strong><br>Legjobb eredmény: <strong id="bestScore">0</strong></p>
         <div class="buttons">
           <button id="restartBtn" class="primary">Újra repülünk</button>
-          <a class="button secondary" href="https://adam-marica.wedding" target="_blank" rel="noopener">💍 Esküvő</a>
+          <a class="button secondary wedding-link" href="wedding.html"><img class="btn-icon" src="apple-touch-icon.png" alt=""> <span>Esküvő</span></a>
         </div>
         <p class="small">Tipp: rövid, egyenletes kattintásokkal könnyebb.</p>
       </div>
