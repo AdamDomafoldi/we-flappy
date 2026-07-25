@@ -186,6 +186,94 @@
   @keyframes pulse {
     to { transform:translate(-50%,-50%) scale(1.06); }
   }
+
+
+  .name-card {
+    width:min(92%,390px);
+  }
+  .name-score {
+    margin:8px 0 18px;
+    font-size:20px;
+    font-weight:900;
+    color:var(--purple);
+  }
+  .name-input {
+    width:100%;
+    min-height:52px;
+    padding:0 18px;
+    margin-bottom:12px;
+    border:2px solid rgba(116,70,168,.24);
+    border-radius:999px;
+    background:#fff;
+    color:var(--deep);
+    font:inherit;
+    font-size:17px;
+    font-weight:700;
+    text-align:center;
+    outline:none;
+  }
+  .name-input:focus {
+    border-color:var(--purple);
+    box-shadow:0 0 0 4px rgba(116,70,168,.12);
+  }
+  .name-error {
+    min-height:20px;
+    margin:-3px 0 10px;
+    color:#b42318;
+    font-size:13px;
+    font-weight:700;
+  }
+
+  .results-card {
+    width:min(96%,460px);
+    max-height:82vh;
+    overflow:auto;
+  }
+  .results-table-wrap {
+    overflow-x:auto;
+    margin:16px 0;
+    border:1px solid rgba(116,70,168,.18);
+    border-radius:16px;
+    background:#fff;
+  }
+  .results-table {
+    width:100%;
+    border-collapse:collapse;
+    font-size:14px;
+  }
+  .results-table th,
+  .results-table td {
+    padding:11px 9px;
+    text-align:left;
+    border-bottom:1px solid rgba(116,70,168,.12);
+    white-space:nowrap;
+  }
+  .results-table th {
+    position:sticky;
+    top:0;
+    background:#f5eefb;
+    color:var(--deep);
+    font-weight:900;
+  }
+  .results-table td:first-child,
+  .results-table th:first-child {
+    text-align:center;
+    width:54px;
+  }
+  .results-table td:nth-child(3),
+  .results-table th:nth-child(3) {
+    text-align:center;
+    font-weight:900;
+  }
+  .results-table tr:last-child td {
+    border-bottom:0;
+  }
+  .empty-results {
+    padding:22px;
+    text-align:center;
+    opacity:.72;
+  }
+
   .small { font-size:13px; opacity:.72; margin-top:14px; }
 </style>
 </head>
@@ -212,6 +300,7 @@
         <p class="subtitle">Repüljetek át minél több kapun!<br>Kattints, érintsd meg a képernyőt, vagy nyomd meg a szóközt.</p>
         <div class="buttons">
           <button id="startBtn" class="primary">Játék indítása</button>
+          <button class="secondary resultsBtn">Eredménylista</button>
           <a class="button secondary wedding-link" href="wedding.html"><img class="btn-icon" src="apple-touch-icon.png" alt=""> <span>Esküvő</span></a>
         </div>
       </div>
@@ -223,9 +312,60 @@
         <p class="subtitle">Eredményed: <strong id="finalScore">0</strong><br>Legjobb eredmény: <strong id="bestScore">0</strong></p>
         <div class="buttons">
           <button id="restartBtn" class="primary">Újra repülünk</button>
+          <button class="secondary resultsBtn">Eredménylista</button>
           <a class="button secondary wedding-link" href="wedding.html"><img class="btn-icon" src="apple-touch-icon.png" alt=""> <span>Esküvő</span></a>
         </div>
         <p class="small">Tipp: rövid, egyenletes kattintásokkal könnyebb.</p>
+      </div>
+    </section>
+
+
+    <section id="namePrompt" class="overlay hidden">
+      <div class="card name-card">
+        <h1>Szép repülés!</h1>
+        <p class="subtitle">Add meg a felhasználóneved, hogy elmentsük az eredményedet.</p>
+        <div class="name-score">Elért pontszám: <span id="namePromptScore">0</span></div>
+        <form id="nameForm">
+          <input
+            id="usernameInput"
+            class="name-input"
+            type="text"
+            maxlength="20"
+            autocomplete="nickname"
+            placeholder="Felhasználónév"
+            aria-label="Felhasználónév"
+          >
+          <div id="nameError" class="name-error" aria-live="polite"></div>
+          <div class="buttons">
+            <button type="submit" class="primary">Eredmény mentése</button>
+            <button type="button" id="skipNameBtn" class="secondary">Mentés kihagyása</button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <section id="results" class="overlay hidden">
+      <div class="card results-card">
+        <h1>Eredménylista</h1>
+        <p class="subtitle">A böngészőben elmentett legjobb eredmények.</p>
+        <div class="results-table-wrap">
+          <table class="results-table">
+            <thead>
+              <tr>
+                <th>Hely</th>
+                <th>Felhasználónév</th>
+                <th>Pont</th>
+                <th>Dátum</th>
+              </tr>
+            </thead>
+            <tbody id="resultsBody"></tbody>
+          </table>
+          <div id="emptyResults" class="empty-results hidden">Még nincs elmentett eredmény.</div>
+        </div>
+        <div class="buttons">
+          <button id="closeResultsBtn" class="primary">Vissza</button>
+          <button id="clearResultsBtn" class="secondary">Lista törlése</button>
+        </div>
       </div>
     </section>
   </main>
@@ -237,6 +377,14 @@
   const ctx = canvas.getContext('2d');
   const startScreen = document.getElementById('start');
   const gameoverScreen = document.getElementById('gameover');
+  const resultsScreen = document.getElementById('results');
+  const resultsBody = document.getElementById('resultsBody');
+  const emptyResults = document.getElementById('emptyResults');
+  const namePrompt = document.getElementById('namePrompt');
+  const nameForm = document.getElementById('nameForm');
+  const usernameInput = document.getElementById('usernameInput');
+  const namePromptScore = document.getElementById('namePromptScore');
+  const nameError = document.getElementById('nameError');
   const hud = document.getElementById('hud');
   const hint = document.getElementById('hint');
   const scoreEl = document.getElementById('score');
@@ -250,6 +398,10 @@
   let W=0,H=0,dpr=1;
   let running=false, started=false, dead=false, muted=false;
   let score=0, best=Number(localStorage.getItem('weFlappyBest') || 0);
+  const resultsStorageKey='weFlappyResults';
+  let resultsReturnScreen='start';
+  const usernameStorageKey='weFlappyUsername';
+  let pendingScore=null;
   let last=0, spawnTimer=0;
   let pipes=[];
   let audioCtx=null;
@@ -432,6 +584,105 @@
     if(running) requestAnimationFrame(loop);
   }
 
+
+  function getResults() {
+    try {
+      const data=JSON.parse(localStorage.getItem(resultsStorageKey) || '[]');
+      return Array.isArray(data) ? data : [];
+    } catch(e) {
+      return [];
+    }
+  }
+
+  function saveResult(points,username) {
+    const results=getResults();
+    results.push({
+      username:String(username || 'Névtelen').trim().slice(0,20) || 'Névtelen',
+      score:Number(points) || 0,
+      date:new Date().toISOString()
+    });
+    results.sort((a,b)=>b.score-a.score || new Date(b.date)-new Date(a.date));
+    localStorage.setItem(resultsStorageKey,JSON.stringify(results.slice(0,50)));
+  }
+
+  function renderResults() {
+    const results=getResults()
+      .sort((a,b)=>b.score-a.score || new Date(b.date)-new Date(a.date));
+
+    resultsBody.textContent='';
+    emptyResults.classList.toggle('hidden',results.length>0);
+
+    for(const [index,item] of results.entries()) {
+      const row=document.createElement('tr');
+      const rank=document.createElement('td');
+      const username=document.createElement('td');
+      const points=document.createElement('td');
+      const date=document.createElement('td');
+
+      rank.textContent=index+1;
+      username.textContent=item.username || 'Névtelen';
+      points.textContent=item.score;
+      date.textContent=new Intl.DateTimeFormat('hu-HU',{
+        year:'numeric',
+        month:'2-digit',
+        day:'2-digit',
+        hour:'2-digit',
+        minute:'2-digit'
+      }).format(new Date(item.date));
+
+      row.append(rank,username,points,date);
+      resultsBody.appendChild(row);
+    }
+  }
+
+  function openResults() {
+    resultsReturnScreen=gameoverScreen.classList.contains('hidden') ? 'start' : 'gameover';
+    startScreen.classList.add('hidden');
+    gameoverScreen.classList.add('hidden');
+    resultsScreen.classList.remove('hidden');
+    renderResults();
+  }
+
+  function closeResults() {
+    resultsScreen.classList.add('hidden');
+    if(resultsReturnScreen==='gameover') {
+      gameoverScreen.classList.remove('hidden');
+    } else {
+      startScreen.classList.remove('hidden');
+    }
+  }
+
+
+  function showNamePrompt(points) {
+    pendingScore=points;
+    namePromptScore.textContent=points;
+    usernameInput.value=localStorage.getItem(usernameStorageKey) || '';
+    nameError.textContent='';
+    namePrompt.classList.remove('hidden');
+    setTimeout(()=>{
+      usernameInput.focus();
+      usernameInput.select();
+    },50);
+  }
+
+  function finishGameOver() {
+    namePrompt.classList.add('hidden');
+    pendingScore=null;
+    setTimeout(()=>gameoverScreen.classList.remove('hidden'),120);
+  }
+
+  function submitUsername() {
+    const username=usernameInput.value.trim();
+    if(!username) {
+      nameError.textContent='Kérlek, adj meg egy felhasználónevet.';
+      usernameInput.focus();
+      return;
+    }
+    localStorage.setItem(usernameStorageKey,username);
+    saveResult(pendingScore,username);
+    finishGameOver();
+  }
+
   function gameOver() {
     if(dead) return;
     dead=true; running=false;
@@ -442,7 +693,7 @@
     bestScoreEl.textContent=best;
     hud.classList.add('hidden');
     hint.classList.add('hidden');
-    setTimeout(()=>gameoverScreen.classList.remove('hidden'),220);
+    setTimeout(()=>showNamePrompt(score),220);
   }
 
   function press(e) {
@@ -460,6 +711,22 @@
   });
   document.getElementById('startBtn').addEventListener('click',begin);
   document.getElementById('restartBtn').addEventListener('click',begin);
+  nameForm.addEventListener('submit',e=>{
+    e.preventDefault();
+    submitUsername();
+  });
+  usernameInput.addEventListener('input',()=>nameError.textContent='');
+  document.getElementById('skipNameBtn').addEventListener('click',finishGameOver);
+  document.querySelectorAll('.resultsBtn').forEach(btn=>btn.addEventListener('click',openResults));
+  document.getElementById('closeResultsBtn').addEventListener('click',closeResults);
+  document.getElementById('clearResultsBtn').addEventListener('click',()=>{
+    if(confirm('Biztosan törlöd az összes elmentett eredményt?')) {
+      localStorage.removeItem(resultsStorageKey);
+      localStorage.removeItem('weFlappyBest');
+      best=0;
+      renderResults();
+    }
+  });
   soundBtn.addEventListener('click',e=>{
     e.stopPropagation();
     muted=!muted;
