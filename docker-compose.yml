@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+    we-fappy:
+        build:
+            context: .
+            dockerfile: Dockerfile.we-fappy
+        restart: always
+        container_name: we-fappy
+        ports:
+            - 92:80
+        networks:
+            - caddy
+        labels:
+            caddy: marica-adam.domafoldi.hu
+            caddy.reverse_proxy: "{{upstreams 80}}"
+
+networks:
+  caddy:
+    external: true
