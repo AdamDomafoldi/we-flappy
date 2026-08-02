@@ -17,7 +17,7 @@ from mysql.connector import Error as MySQLError
 BASE_DIR = Path(__file__).resolve().parent
 
 DB_CONFIG = {
-    "host": os.getenv("MYSQL_HOST", "localhost"),
+    "host": os.getenv("MYSQL_HOST", "mysql"),
     "port": int(os.getenv("MYSQL_PORT", "3306")),
     "user": os.getenv("MYSQL_USER", "marica"),
     "password": os.getenv("MYSQL_PASSWORD", "Berciokoses2fulevan/marica"),
@@ -30,23 +30,6 @@ DB_CONFIG = {
 
 def get_connection():
     return mysql.connector.connect(**DB_CONFIG)
-
-
-def initialize_database() -> None:
-    statement = """
-        CREATE TABLE IF NOT EXISTS we_flappy_results (
-            id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-            username VARCHAR(20) NOT NULL,
-            score INT UNSIGNED NOT NULL,
-            created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-            PRIMARY KEY (id),
-            INDEX idx_score_created (score DESC, created_at ASC)
-        ) CHARACTER SET utf8 COLLATE utf8_general_ci
-    """
-    with get_connection() as connection:
-        with connection.cursor() as cursor:
-            cursor.execute(statement)
-
 
 class GameHandler(SimpleHTTPRequestHandler):
     server_version = "WeFlappy/1.0"
@@ -154,7 +137,6 @@ class GameHandler(SimpleHTTPRequestHandler):
 
 
 def main() -> None:
-    initialize_database()
     host = os.getenv("HOST", "0.0.0.0")
     port = int(os.getenv("PORT", "8000"))
     server = ThreadingHTTPServer((host, port), GameHandler)
