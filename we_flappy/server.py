@@ -80,7 +80,7 @@ class GameHandler(SimpleHTTPRequestHandler):
             SELECT username, score, created_at
             FROM we_flappy_results
             ORDER BY score DESC, created_at ASC, id ASC
-            LIMIT 50
+            LIMIT 10
         """
         try:
             with get_connection() as connection:
