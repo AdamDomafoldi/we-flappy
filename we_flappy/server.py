@@ -19,7 +19,7 @@ BASE_DIR = Path(__file__).resolve().parent
 DB_CONFIG = {
     "host": os.getenv("MYSQL_HOST", "mysql"),
     "port": int(os.getenv("MYSQL_PORT", "3306")),
-    "user": os.getenv("MYSQL_USER", "marica"),
+    "user": os.getenv("MYSQL_USER", "wedding"),
     "password": os.getenv("MYSQL_PASSWORD", "Berciokoses2fulevan/marica"),
     "database": os.getenv("MYSQL_DATABASE", "wedding"),
     "charset": os.getenv("MYSQL_CHARSET", "utf8"),
