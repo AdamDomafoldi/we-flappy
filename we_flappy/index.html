@@ -199,6 +199,9 @@
   }
   .name-input {
     width:100%;
+    touch-action:manipulation;
+    user-select:text;
+    -webkit-user-select:text;
     min-height:52px;
     padding:0 18px;
     margin-bottom:12px;
@@ -704,7 +707,10 @@
   }
 
   function press(e) {
-    if(e.target.closest('button,a')) return;
+    // Do not intercept taps intended for form controls or overlay content.
+    // Calling preventDefault() on an input's pointerdown prevents mobile
+    // browsers from focusing it and opening the on-screen keyboard.
+    if(e.target.closest('input,textarea,select,button,a,form,.overlay')) return;
     e.preventDefault();
     flap();
   }
