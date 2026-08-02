@@ -13,7 +13,7 @@ services:
             - caddy
         labels:
             caddy: marica-adam.domafoldi.hu
-            caddy.reverse_proxy: "{{upstreams 80}}"
+            caddy.reverse_proxy: "{{upstreams 8000}}"
 
 networks:
   caddy:
