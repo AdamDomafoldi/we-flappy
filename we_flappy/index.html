@@ -347,7 +347,7 @@
     <section id="results" class="overlay hidden">
       <div class="card results-card">
         <h1>Eredménylista</h1>
-        <p class="subtitle">A böngészőben elmentett legjobb eredmények.</p>
+        <p class="subtitle">A MySQL-adatbázisban elmentett legjobb eredmények.</p>
         <div class="results-table-wrap">
           <table class="results-table">
             <thead>
@@ -364,7 +364,6 @@
         </div>
         <div class="buttons">
           <button id="closeResultsBtn" class="primary">Vissza</button>
-          <button id="clearResultsBtn" class="secondary">Lista törlése</button>
         </div>
       </div>
     </section>
@@ -398,7 +397,6 @@
   let W=0,H=0,dpr=1;
   let running=false, started=false, dead=false, muted=false;
   let score=0, best=Number(localStorage.getItem('weFlappyBest') || 0);
-  const resultsStorageKey='weFlappyResults';
   let resultsReturnScreen='start';
   const usernameStorageKey='weFlappyUsername';
   let pendingScore=null;
@@ -585,34 +583,34 @@
   }
 
 
-  function getResults() {
-    try {
-      const data=JSON.parse(localStorage.getItem(resultsStorageKey) || '[]');
-      return Array.isArray(data) ? data : [];
-    } catch(e) {
-      return [];
+  async function saveResult(points,username) {
+    const response=await fetch('/api/results',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        username:String(username || '').trim().slice(0,20),
+        score:Number(points) || 0
+      })
+    });
+    if(!response.ok) {
+      const error=await response.json().catch(()=>({}));
+      throw new Error(error.error || 'Az eredmény mentése nem sikerült.');
     }
   }
 
-  function saveResult(points,username) {
-    const results=getResults();
-    results.push({
-      username:String(username || 'Névtelen').trim().slice(0,20) || 'Névtelen',
-      score:Number(points) || 0,
-      date:new Date().toISOString()
-    });
-    results.sort((a,b)=>b.score-a.score || new Date(b.date)-new Date(a.date));
-    localStorage.setItem(resultsStorageKey,JSON.stringify(results.slice(0,50)));
-  }
-
-  function renderResults() {
-    const results=getResults()
-      .sort((a,b)=>b.score-a.score || new Date(b.date)-new Date(a.date));
-
+  async function renderResults() {
     resultsBody.textContent='';
-    emptyResults.classList.toggle('hidden',results.length>0);
+    emptyResults.textContent='Eredmények betöltése…';
+    emptyResults.classList.remove('hidden');
 
-    for(const [index,item] of results.entries()) {
+    try {
+      const response=await fetch('/api/results');
+      if(!response.ok) throw new Error('Az eredménylista nem tölthető be.');
+      const results=await response.json();
+      emptyResults.textContent='Még nincs elmentett eredmény.';
+      emptyResults.classList.toggle('hidden',results.length>0);
+
+      for(const [index,item] of results.entries()) {
       const row=document.createElement('tr');
       const rank=document.createElement('td');
       const username=document.createElement('td');
@@ -630,8 +628,12 @@
         minute:'2-digit'
       }).format(new Date(item.date));
 
-      row.append(rank,username,points,date);
-      resultsBody.appendChild(row);
+        row.append(rank,username,points,date);
+        resultsBody.appendChild(row);
+      }
+    } catch(error) {
+      emptyResults.textContent=error.message;
+      emptyResults.classList.remove('hidden');
     }
   }
 
@@ -671,16 +673,21 @@
     setTimeout(()=>gameoverScreen.classList.remove('hidden'),120);
   }
 
-  function submitUsername() {
+  async function submitUsername() {
     const username=usernameInput.value.trim();
     if(!username) {
       nameError.textContent='Kérlek, adj meg egy felhasználónevet.';
       usernameInput.focus();
       return;
     }
-    localStorage.setItem(usernameStorageKey,username);
-    saveResult(pendingScore,username);
-    finishGameOver();
+    nameError.textContent='Mentés…';
+    try {
+      await saveResult(pendingScore,username);
+      localStorage.setItem(usernameStorageKey,username);
+      finishGameOver();
+    } catch(error) {
+      nameError.textContent=error.message;
+    }
   }
 
   function gameOver() {
@@ -719,14 +726,6 @@
   document.getElementById('skipNameBtn').addEventListener('click',finishGameOver);
   document.querySelectorAll('.resultsBtn').forEach(btn=>btn.addEventListener('click',openResults));
   document.getElementById('closeResultsBtn').addEventListener('click',closeResults);
-  document.getElementById('clearResultsBtn').addEventListener('click',()=>{
-    if(confirm('Biztosan törlöd az összes elmentett eredményt?')) {
-      localStorage.removeItem(resultsStorageKey);
-      localStorage.removeItem('weFlappyBest');
-      best=0;
-      renderResults();
-    }
-  });
   soundBtn.addEventListener('click',e=>{
     e.stopPropagation();
     muted=!muted;
